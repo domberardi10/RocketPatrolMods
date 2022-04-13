@@ -1,3 +1,15 @@
+// Rocket Patrol Mods Assignment
+// Name: Dominic Berardi
+// Date: 4/12/2022
+//
+// This assignment took approximately 2 hours.
+// 
+// LIST OF MODS CREATED:
+// Display the time (in seconds) on the screen (10 points)
+//
+// REFERENCES USED:
+// https://jsfiddle.net/lewster32/8odgdyq6/
+
 let config = {
     type: Phaser.CANVAS,
     width: 640,
