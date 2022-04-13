@@ -63,11 +63,13 @@ class Play extends Phaser.Scene {
         this.gameOver = false;
         //Play clock
         //MOD: Alternative play clock method to allow for adding time
+        scoreConfig.fixedWidth = 0;
         this.timeRemaining = this.time.delayedCall(game.settings.gameTimer, () => {
                 this.add.text(game.config.width / 2, game.config.height / 2, 'GAME OVER', scoreConfig).setOrigin(0.5);
                 this.add.text(game.config.width / 2, game.config.height / 2 + 64, 'Press (R) to Restart or <- for Menu', scoreConfig).setOrigin(0.5);
                 this.gameOver = true;
         }, null, this);
+        scoreConfig.fixedWidth = 100;
 
         // game.input.onDown.add(function() {
         //     var currentTime = this.timeRemaining.getRemaining();
@@ -139,12 +141,24 @@ class Play extends Phaser.Scene {
     }
     checkCollision(rocket, ship) {
         // Axis-Aligned Bounding Boxes method
+        let textConfig = {
+            fontFamily: 'Courier',
+            fontSize: '28px',
+            backgroundColor: '#F3B141',
+            color: '#843605',
+            align: 'right',
+            padding: {
+                top: 5,
+                bottom: 5,
+            },
+            fixedWidth: 100
+        }
         if (rocket.x < ship.x + ship.width && rocket.x + rocket.width > ship.x && rocket.y < ship.y + ship.height && rocket.height + rocket.y > ship.y) {
             var currentTime = this.timeRemaining.getRemaining();
-            this.timeRemaining.removeEvent();
-            this.timeRemaining = this.time.delayedCall(currentTime + 1000, () => {
-                this.add.text(game.config.width / 2, game.config.height / 2, 'GAME OVER', scoreConfig).setOrigin(0.5);
-                this.add.text(game.config.width / 2, game.config.height / 2 + 64, 'Press (R) to Restart or <- for Menu', scoreConfig).setOrigin(0.5);
+            this.timeRemaining.destroy();
+            this.timeRemaining = this.time.delayedCall(currentTime + 3000, () => {
+                this.add.text(game.config.width / 2, game.config.height / 2, 'GAME OVER', textConfig).setOrigin(0.5);
+                this.add.text(game.config.width / 2, game.config.height / 2 + 64, 'Press (R) to Restart or <- for Menu', textConfig).setOrigin(0.5);
                 this.gameOver = true;
             }, null, this);
             return true;
