@@ -36,20 +36,20 @@ class Play extends Phaser.Scene {
         this.ship03 = new Spaceship(this, game.config.width, borderUISize * 6 + borderPadding * 4, 'spaceship', 0, 10).setOrigin(0, 0);
         //MOD: Increase speed of ships every 30 seconds
         this.ship01SpeedTimer = this.time.addEvent({
-            delay: 3000,
-            callback: () => {this.ship01.moveSpeed += 2},
+            delay: 30000,
+            callback: () => {this.ship01.moveSpeed += 1},
             startAt: 0,
             loop: true
         });
         this.ship02SpeedTimer = this.time.addEvent({
-            delay: 3000,
-            callback: () => {this.ship02.moveSpeed += 2},
+            delay: 30000,
+            callback: () => {this.ship02.moveSpeed += 1},
             startAt: 0,
             loop: true
         });
         this.ship03SpeedTimer = this.time.addEvent({
-            delay: 3000,
-            callback: () => {this.ship03.moveSpeed += 2},
+            delay: 30000,
+            callback: () => {this.ship03.moveSpeed += 1},
             startAt: 0,
             loop: true
         });
@@ -76,7 +76,14 @@ class Play extends Phaser.Scene {
             },
             fixedWidth: 100
         }
+        let headerConfig = {
+            fontFamily: 'Courier',
+            fontSize: '18px',
+            backgroundColor: '#ADD8E6',
+            color: '#000000',
+        }
         this.scoreLeft = this.add.text(borderUISize + borderPadding, borderUISize + borderPadding * 2, this.p1Score, scoreConfig);
+        this.scoreHeader = this.add.text(borderUISize + borderPadding, borderUISize + borderPadding, "Score", headerConfig);
 
         //GAME OVER flag
         this.gameOver = false;
@@ -92,13 +99,15 @@ class Play extends Phaser.Scene {
 
         //MOD: Display play clock
         this.clockRight = this.add.text(game.config.width - (borderUISize + borderPadding * 10), borderUISize + borderPadding * 2, this.timeRemaining.getRemainingSeconds(), scoreConfig);
+        this.clockHeader = this.add.text(game.config.width - (borderUISize + borderPadding * 10), borderUISize + borderPadding, "Time", headerConfig);
 
-        //MOD: Increase speed of ships every 30 seconds
-        // var shipSpeedTimer = this.time.addEvent({
-        //     delay: 30000,
-        //     callback: () => {game.settings.},
-        //     loop: true
-        // });
+        //MOD: Display high score
+        this.highMid = this.add.text(game.config.width - (borderUISize + borderPadding * 25), borderUISize + borderPadding * 2, highScore, scoreConfig);
+        this.highHeader = this.add.text(game.config.width - (borderUISize + borderPadding * 25), borderUISize + borderPadding, "High", headerConfig);
+
+        //MOD: Display fire text
+        scoreConfig.align = 'center';
+        this.fireMid = this.add.text(borderUISize + borderPadding * 15, borderUISize + borderPadding * 2, "FIRE", scoreConfig);
 
     }
     update() {
@@ -117,9 +126,6 @@ class Play extends Phaser.Scene {
             this.ship01.update();
             this.ship02.update();
             this.ship03.update();
-            //MOD: Display play clock
-            //this.timeRemaining -= (1000 / 60);
-            this.clockRight.text = Math.trunc(this.timeRemaining.getRemainingSeconds());
         }
         //check collisions every frame
         if (this.checkCollision(this.p1rocket, this.ship03)){
@@ -135,6 +141,17 @@ class Play extends Phaser.Scene {
             this.shipExplode(this.ship01);
         }
 
+        //MOD: Display play clock
+        this.clockRight.text = Math.trunc(this.timeRemaining.getRemainingSeconds());
+
+        //MOD: Display fire text
+        if (this.p1rocket.isFiring){
+            this.fireMid.setAlpha(0);
+        }
+        else{
+            this.fireMid.setAlpha(1);
+        }
+
     }
     checkCollision(rocket, ship) {
         // Axis-Aligned Bounding Boxes method
@@ -148,12 +165,11 @@ class Play extends Phaser.Scene {
                 top: 5,
                 bottom: 5,
             },
-            fixedWidth: 100
         }
         if (rocket.x < ship.x + ship.width && rocket.x + rocket.width > ship.x && rocket.y < ship.y + ship.height && rocket.height + rocket.y > ship.y) {
             var currentTime = this.timeRemaining.getRemaining();
             this.timeRemaining.destroy();
-            this.timeRemaining = this.time.delayedCall(currentTime + 3000, () => {
+            this.timeRemaining = this.time.delayedCall(currentTime + 2000, () => {
                 this.add.text(game.config.width / 2, game.config.height / 2, 'GAME OVER', textConfig).setOrigin(0.5);
                 this.add.text(game.config.width / 2, game.config.height / 2 + 64, 'Press (R) to Restart or <- for Menu', textConfig).setOrigin(0.5);
                 this.gameOver = true;
@@ -183,6 +199,10 @@ class Play extends Phaser.Scene {
         //score addition and repaint score text
         this.p1Score += ship.points;
         this.scoreLeft.text = this.p1Score;
+        if (this.p1Score >= highScore){
+            highScore = this.p1Score;
+        }
+        this.highMid.text = highScore;
         this.sound.play('sfx_explosion');
     }
 }
