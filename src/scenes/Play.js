@@ -6,11 +6,30 @@ class Play extends Phaser.Scene {
         this.load.image('rocket', './assets/rocket.png');
         this.load.image('spaceship', './assets/spaceship.png');
         this.load.image('starfield', './assets/starfield.png');
-        this.load.spritesheet('explosion', './assets/explosion.png', {frameWidth: 64, frameHeight: 32, startFrame: 0, endFrame: 9});
+        this.load.image('bonus_ship', './assets/bonus_ship.png');
+        this.load.spritesheet('explosion', './assets/explosion.png', {frameWidth: 29, frameHeight: 36, startFrame: 0, endFrame: 8});
     }
     create() {
         //tile sprite
         this.starfield = this.add.tileSprite(0, 0, 640, 480, 'starfield').setOrigin(0, 0);
+        
+        //add player 1 rocket
+        this.p1rocket = new Rocket(this, game.config.width / 2, game.config.height - borderUISize - borderPadding - 10, 'rocket').setOrigin(0.5, 0);
+
+        //key definitions
+        keyF = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.F);
+        keyR = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.R);
+        keyLEFT = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.LEFT);
+        keyRIGHT = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.RIGHT);
+
+        //add spaceships
+        //MOD: Choose random movement direction when created
+        this.ship01 = new Spaceship(this, game.config.width + borderUISize * 6, borderUISize * 4, 'spaceship', 0, 30, game.settings.spaceshipSpeed, Phaser.Math.Between(0, 1)).setOrigin(0, 0);
+        this.ship02 = new Spaceship(this, game.config.width + borderUISize * 3, borderUISize * 5 + borderPadding * 2, 'spaceship', 0, 20, game.settings.spaceshipSpeed, Phaser.Math.Between(0, 1)).setOrigin(0, 0);
+        this.ship03 = new Spaceship(this, game.config.width, borderUISize * 6 + borderPadding * 4, 'spaceship', 0, 10, game.settings.spaceshipSpeed, Phaser.Math.Between(0, 1)).setOrigin(0, 0);
+
+        //MOD: Create new type of spaceship
+        this.bonusShip = new Spaceship(this, game.config.width + borderUISize * 6, borderUISize * 3 + 15, 'bonus_ship', 0, 100, game.settings.bonusSpeed, Phaser.Math.Between(0, 1)).setOrigin(0, 0);
 
         //green UI background
         this.add.rectangle(0, borderUISize + borderPadding, game.config.width, borderUISize * 2, 0x00FF00).setOrigin(0, 0);
@@ -20,20 +39,7 @@ class Play extends Phaser.Scene {
         this.add.rectangle(0, game.config.height - borderUISize, game.config.width, borderUISize, 0xFFFFFF).setOrigin(0, 0);
         this.add.rectangle(0, 0, borderUISize, game.config.height, 0xFFFFFF).setOrigin(0, 0);
         this.add.rectangle(game.config.width - borderUISize, 0, borderUISize, game.config.height, 0xFFFFFF).setOrigin(0, 0);
-        
-        //add player 1 rocket
-        this.p1rocket = new Rocket(this, game.config.width / 2, game.config.height - borderUISize - borderPadding, 'rocket').setOrigin(0.5, 0);
 
-        //key definitions
-        keyF = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.F);
-        keyR = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.R);
-        keyLEFT = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.LEFT);
-        keyRIGHT = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.RIGHT);
-
-        //add spaceships
-        this.ship01 = new Spaceship(this, game.config.width + borderUISize * 6, borderUISize * 4, 'spaceship', 0, 30).setOrigin(0, 0);
-        this.ship02 = new Spaceship(this, game.config.width + borderUISize * 3, borderUISize * 5 + borderPadding * 2, 'spaceship', 0, 20).setOrigin(0, 0);
-        this.ship03 = new Spaceship(this, game.config.width, borderUISize * 6 + borderPadding * 4, 'spaceship', 0, 10).setOrigin(0, 0);
         //MOD: Increase speed of ships every 30 seconds
         this.ship01SpeedTimer = this.time.addEvent({
             delay: 30000,
@@ -53,11 +59,17 @@ class Play extends Phaser.Scene {
             startAt: 0,
             loop: true
         });
+        this.bonusShipSpeedTimer = this.time.addEvent({
+            delay: 30000,
+            callback: () => {this.bonusShip.moveSpeed += 2},
+            startAt: 0,
+            loop: true
+        });
 
         //explosion animation
         this.anims.create({
             key: 'explode',
-            frames: this.anims.generateFrameNumbers('explosion', { start: 0, end: 9, first: 0 }),
+            frames: this.anims.generateFrameNumbers('explosion', { start: 0, end: 8, first: 0 }),
             frameRate: 30
         });
 
@@ -119,13 +131,14 @@ class Play extends Phaser.Scene {
             this.scene.start("menuScene");
         }
         //move starfield
-        this.starfield.tilePositionX -= 4;
+        this.starfield.tilePositionX -= 4.5;
         //game over update (stops ships and rocket)
         if (!this.gameOver) {
             this.p1rocket.update();
             this.ship01.update();
             this.ship02.update();
             this.ship03.update();
+            this.bonusShip.update();
         }
         //check collisions every frame
         if (this.checkCollision(this.p1rocket, this.ship03)){
@@ -139,6 +152,10 @@ class Play extends Phaser.Scene {
         if (this.checkCollision(this.p1rocket, this.ship01)){
             this.p1rocket.reset();
             this.shipExplode(this.ship01);
+        }
+        if (this.checkCollision(this.p1rocket, this.bonusShip)){
+            this.p1rocket.reset();
+            this.shipExplode(this.bonusShip);
         }
 
         //MOD: Display play clock
@@ -166,10 +183,17 @@ class Play extends Phaser.Scene {
                 bottom: 5,
             },
         }
+        let addedTime = 0;
+        if (ship.points == 100) {
+            addedTime = 5000;
+        }
+        else {
+            addedTime = 1250;
+        }
         if (rocket.x < ship.x + ship.width && rocket.x + rocket.width > ship.x && rocket.y < ship.y + ship.height && rocket.height + rocket.y > ship.y) {
             var currentTime = this.timeRemaining.getRemaining();
             this.timeRemaining.destroy();
-            this.timeRemaining = this.time.delayedCall(currentTime + 2000, () => {
+            this.timeRemaining = this.time.delayedCall(currentTime + addedTime, () => {
                 this.add.text(game.config.width / 2, game.config.height / 2, 'GAME OVER', textConfig).setOrigin(0.5);
                 this.add.text(game.config.width / 2, game.config.height / 2 + 64, 'Press (R) to Restart or <- for Menu', textConfig).setOrigin(0.5);
                 this.gameOver = true;

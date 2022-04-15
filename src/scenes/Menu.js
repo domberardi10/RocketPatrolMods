@@ -48,6 +48,7 @@ class Menu extends Phaser.Scene {
             //novice
             game.settings = {
                 spaceshipSpeed: 3,
+                bonusSpeed: 6,
                 gameTimer: 60000
             }
             this.sound.play('sfx_select');
@@ -57,6 +58,7 @@ class Menu extends Phaser.Scene {
             //expert
             game.settings = {
                 spaceshipSpeed: 4,
+                bonusSpeed: 7,
                 gameTimer: 45000
             }
             this.sound.play('sfx_select');
