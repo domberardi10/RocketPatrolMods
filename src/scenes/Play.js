@@ -223,6 +223,7 @@ class Play extends Phaser.Scene {
         //score addition and repaint score text
         this.p1Score += ship.points;
         this.scoreLeft.text = this.p1Score;
+        //MOD: Track high score
         if (this.p1Score >= highScore){
             highScore = this.p1Score;
         }

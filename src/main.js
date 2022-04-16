@@ -25,11 +25,12 @@
 // 
 // Total: 100 points
 //
-// REFERENCES USED:
+// REFERENCES/RESOURCES USED:
 // https://jsfiddle.net/lewster32/8odgdyq6/
 // https://rexrainbow.github.io/phaser3-rex-notes/docs/site/timer/ 
 // https://rexrainbow.github.io/phaser3-rex-notes/docs/site/audio/
 // https://rexrainbow.github.io/phaser3-rex-notes/docs/site/random/
+// http://pixelartmaker.com/
 //
 // MUSIC CREDIT:
 // Playground Runaround by shortiefoeva2
